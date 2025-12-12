@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hoiana Shore Golf Club - Pro Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Oswald:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #005f73;
+            --secondary-color: #0a9396;
+            --accent-color: #e9d8a6;
+            --text-dark: #264653;
+            --text-light: #ffffff;
+            --bg-light: #f8f9fa;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 12px rgba(0,0,0,0.1);
+            --nav-height: 70px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none; /* Prevent text selection for app-like feel */
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- Top Navigation Bar (Scrollable Holes) --- */
+        header {
+            background-color: var(--primary-color);
+            height: var(--nav-height);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            flex-shrink: 0;
+        }
+
+        .hole-nav-scroller {
+            display: flex;
+            overflow-x: auto;
+            gap: 12px;
+            padding: 0 10px;
+            width: 100%;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge */
+        }
+        
+        .hole-nav-scroller::-webkit-scrollbar {
+            display: none; /* Chrome/Safari */
+        }
+
+        .hole-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            flex-shrink: 0;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .hole-btn.active {
+            background: var(--accent-color);
+            color: var(--text-dark);
+            border-color: #fff;
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+
+        /* --- Main Content Area --- */
+        main {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            padding-bottom: 20px;
+        }
+
+        /* Info Card */
+        .info-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 12px 15px;
+            box-shadow: var(--shadow);
+            margin-bottom: 12px;
+        }
+
+        .hole-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        .hole-number-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .hole-par-hcp {
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .stat-box {
+            text-align: center;
+        }
+        
+        .stat-label { font-size: 0.7rem; color: #888; text-transform: uppercase; }
+        .stat-val { font-family: 'Oswald', sans-serif; font-size: 1.2rem; font-weight: 600; }
+        .val-blue { color: var(--primary-color); }
+        .val-red { color: #e76f51; }
+
+        /* --- View Switcher (Tabs) --- */
+        .view-switcher {
+            display: flex;
+            background: #e9ecef;
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 12px;
+        }
+
+        .view-btn {
+            flex: 1;
+            text-align: center;
+            padding: 8px 0;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #666;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .view-btn.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* --- Content Container --- */
+        .content-container {
+            flex: 1;
+            position: relative;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Image View */
+        .image-view {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #eee;
+            cursor: zoom-in;
+        }
+
+        .image-view img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .tap-hint {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            pointer-events: none;
+        }
+
+        /* Strategy View */
+        .strategy-view {
+            padding: 20px;
+            overflow-y: auto;
+            display: none;
+            height: 100%;
+        }
+
+        .strategy-text {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: #333;
+            white-space: pre-line;
+        }
+
+        /* --- Full Screen Lightbox --- */
+        #lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: black;
+            z-index: 1000;
+            display: none;
+            overflow: hidden;
+            touch-action: none; /* Crucial for custom gestures */
+        }
+
+        #lightbox-img-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-origin: center center;
+        }
+
+        #lightbox-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            transition: transform 0.1s ease-out; /* Smooth updates */
+            will-change: transform;
+        }
+
+        #lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            cursor: pointer;
+            z-index: 1001;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        #lightbox-close:active {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Helper to hide/show views */
+        .hidden { display: none !important; }
+        
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="hole-nav-scroller" id="nav-scroller">
+        <!-- JS will populate buttons 1-19 -->
+    </div>
+</header>
+
+<main>
+    <div class="info-card">
+        <div class="hole-header">
+            <div class="hole-number-title" id="hole-title">Hole 1</div>
+            <div class="hole-par-hcp">PAR <span id="hole-par">4</span> | HCP <span id="hole-hcp">2</span></div>
+        </div>
+        <div class="stats-row">
+            <div class="stat-box">
+                <div class="stat-label">White Tee</div>
+                <div class="stat-val val-blue" id="hole-dist">462y</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Green Depth</div>
+                <div class="stat-val val-red" id="hole-depth">44y</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Switcher -->
+    <div class="view-switcher">
+        <div class="view-btn active" onclick="setView('fairway')" id="btn-fairway">球道圖</div>
+        <div class="view-btn" onclick="setView('green')" id="btn-green">果嶺圖</div>
+        <div class="view-btn" onclick="setView('strategy')" id="btn-strategy">攻略</div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="content-container">
+        
+        <!-- Image View (Fairway/Green) -->
+        <div id="view-image" class="image-view" onclick="openLightbox()">
+            <img id="main-img" src="" alt="Course View">
+            <div class="tap-hint">點擊放大 (Tap to Zoom)</div>
+        </div>
+
+        <!-- Strategy View -->
+        <div id="view-strategy" class="strategy-view">
+            <div class="strategy-text" id="strategy-text"></div>
+        </div>
+
+    </div>
+</main>
+
+<!-- Lightbox Overlay -->
+<div id="lightbox">
+    <div id="lightbox-close" onclick="closeLightbox()">✕</div>
+    <div id="lightbox-img-container">
+        <img id="lightbox-img" src="" alt="Full Screen">
+    </div>
+</div>
+
+<script>
+    // --- Data ---
+    const courseData = [
+    { "hole": 1, "title": "覺醒", "par": 4, "hcp": 2.0, "distance": 462, "depth": 44, "green_image": "https://i.ibb.co/RGT8f4ZJ/Hole-1-green.jpg", "fairway_image": "https://i.ibb.co/mV2K9FjV/Hole-1-fareway.jpg", "strategy": "• 地形特徵: 極具挑戰性的開場長四桿洞，通常迎風。\n詳細攻略:\n• 發球策略: 距離 462 碼，長四桿洞。最佳落點是球道左中側，避開右側灌木。\n• 進攻果嶺: 需長鐵或混種桿。果嶺有偽前緣，不要勉強兩桿上。若開球不佳，佈局果嶺前切桿保 Par 是明智之舉。" },
+    { "hole": 2, "title": "沙丘之躍", "par": 4, "hcp": 11.0, "distance": 371, "depth": 41, "green_image": "https://i.ibb.co/mCZ83t89/Hole-2-green.jpg", "fairway_image": "https://i.ibb.co/gMcgYY2Z/Hole-2-fareway.jpg", "strategy": "• 地形特徵: 巨大球道沙坑群主宰視覺。\n詳細攻略:\n• 激進打法: 飛越左側沙坑群需 Carry 230-240 碼，獎勵是短挖起桿距離。\n• 保守打法: 選擇右側安全區。\n• 進攻果嶺: 右側進攻角度窄，果嶺地勢高，需精準落點。" },
+    { "hole": 3, "title": "滾動的沙浪", "par": 5, "hcp": 7.0, "distance": 538, "depth": 56, "green_image": "https://i.ibb.co/zT4BZHj1/Hole-3-green.jpg", "fairway_image": "https://i.ibb.co/ds208J2c/Hole-3-fareway.jpg", "strategy": "• 地形特徵: 起伏劇烈的五桿洞。\n詳細攻略:\n• 發球: 避開左側「恐龍沙坑」。沿沙坑右緣可獲加速。\n• 第二桿: 果嶺前方開放，適合滾動進攻。避開果嶺前 100 碼交叉沙坑。\n• 果嶺: 較平坦，抓鳥良機。" },
+    { "hole": 4, "title": "聽濤", "par": 4, "hcp": 1.0, "distance": 442, "depth": 50, "green_image": "https://i.ibb.co/wNJnFNzb/Hole-4-green.jpg", "fairway_image": "https://i.ibb.co/dCLGzSx/Hole-4-fareway.jpg", "strategy": "• 地形特徵: 難度係數 1，強側風。\n詳細攻略:\n• 發球: 切中路。實打實的兩桿考驗。\n• 進攻果嶺: 果嶺巨大但周圍沙坑深。若風大，建議落在果嶺前 20 碼滾上去 (Bump-and-Run)。\n• 提示: 保 Bogey 也是好成績。" },
+    { "hole": 5, "title": "強制飛越", "par": 3, "hcp": 5.0, "distance": 174, "depth": 59, "green_image": "https://i.ibb.co/xKLMBZkX/Hole-5-green.jpg", "fairway_image": "https://i.ibb.co/m5FMQvbJ/Hole-5-fareway.jpg", "strategy": "• 地形特徵: 需飛越廢棄沙坑，無前方安全區。\n詳細攻略:\n• 選桿: 174 碼加風勢，可能需 5 或 6 號鐵。\n• 果嶺: 表面褶皺多。瞄準中心是唯一上策，避開邊緣旗位。" },
+    { "hole": 6, "title": "陷阱", "par": 4, "hcp": 4.0, "distance": 386, "depth": 29, "green_image": "https://i.ibb.co/7d15BBDP/Hole-6-green.jpg", "fairway_image": "https://i.ibb.co/B57VkbX2/Hole-6-fareway.jpg", "strategy": "• 地形特徵: 右側突出沙坑是主要障礙。\n詳細攻略:\n• 發球: 右側吸引右曲球。應瞄準左中側，即使路線稍遠也最安全。\n• 進攻果嶺: 前方有兩沙丘守護，開球距離不夠會擋視野。" },
+    { "hole": 7, "title": "沙海", "par": 5, "hcp": 6.0, "distance": 499, "depth": 43, "green_image": "https://i.ibb.co/6j0YFck/Hole-7-green.jpg", "fairway_image": "https://i.ibb.co/w3L8xgL/Hole-7-fareway.jpg", "strategy": "• 地形特徵: 兩側廣闊沙地。\n詳細攻略:\n• 發球: 得分機會。球道寬，但偏離會落入極難救的沙地長草。\n• 第二桿: 果嶺前方開放，歡迎滾動進攻。注意交叉沙坑。" },
+    { "hole": 8, "title": "綠洲", "par": 3, "hcp": 16.0, "distance": 134, "depth": 49, "green_image": "https://i.ibb.co/VpwBb8xb/Hole-8-green.jpg", "fairway_image": "https://i.ibb.co/7dVFP7PL/Hole-8-fareway.jpg", "strategy": "• 地形特徵: 像孤島漂浮在沙海之上的短三桿洞。\n詳細攻略:\n• 選桿: 暴露在強風中，前方沙坑深。\n• 策略: 寧大勿小。打短落沙坑易吞柏忌。打大雖長推但安全。" },
+    { "hole": 9, "title": "幻覺", "par": 4, "hcp": 9.0, "distance": 392, "depth": 58, "green_image": "https://i.ibb.co/7tZhKGQN/Hole-9-green.jpg", "fairway_image": "https://i.ibb.co/nNqpRbhZ/Hole-9-fareway.jpg", "strategy": "• 地形特徵: 果嶺前有欺騙性沙坑。\n詳細攻略:\n• 進攻: 瞄準練習場鐘樓方向。果嶺前沙坑看似緊貼，實有緩衝。相信碼數，直接打足，球通常會落在果嶺中心。" },
+    { "hole": 10, "title": "漁村", "par": 5, "hcp": 13.0, "distance": 562, "depth": 42, "green_image": "https://i.ibb.co/R4Pb2FL2/Hole-10-green.jpg", "fairway_image": "https://i.ibb.co/1tcN3RKR/Hole-10-fareway.jpg", "strategy": "• 地形特徵: 沙丘間蜿蜒，沙坑佈局精美。\n詳細攻略:\n• 發球: 球道寬，鼓勵進攻。\n• 陷阱: 球道扭曲易誤判。請確認紅燈籠位置。果嶺嵌入沙丘壁。" },
+    { "hole": 11, "title": "沙丘", "par": 4, "hcp": 17.0, "distance": 362, "depth": 51, "green_image": "https://i.ibb.co/HppMzXVq/Hole-11-green.jpg", "fairway_image": "https://i.ibb.co/GfcD8vgH/Hole-11-fareway.jpg", "strategy": "• 地形特徵: 被沙子包圍的短四桿洞。\n詳細攻略:\n• 戰略: 距離短，不需一號木。用球道木或長鐵確保上球道，留短挖起桿距離。\n• 果嶺: 起伏劇烈，極難推桿。落點比距離重要。" },
+    { "hole": 12, "title": "桑迪", "par": 3, "hcp": 8.0, "distance": 210, "depth": 53, "green_image": "https://i.ibb.co/PZ83nYYz/Hole-12-green.jpg", "fairway_image": "https://i.ibb.co/WWjCPRm8/Hole-12-fareway.jpg", "strategy": "• 地形特徵: 需飛越廢棄沙坑的長三桿洞。\n詳細攻略:\n• 戰略: 210 碼，考驗長鐵/混種桿。逆風可能需一號木。\n• 打法: 瞄準中心。保 Par 極好，柏忌可接受。勿追逐刁鑽旗位。" },
+    { "hole": 13, "title": "野獸", "par": 4, "hcp": 3.0, "distance": 397, "depth": 44, "green_image": "https://i.ibb.co/0ytgtBmj/Hole-13-green.jpg", "fairway_image": "https://i.ibb.co/My5HtRf6/Hole-13-fareway.jpg", "strategy": "• 地形特徵: 右側或前方可能有水，沙坑多。\n詳細攻略:\n• 發球: 需高精確度。避開兩側廢棄區。長打者可挑戰越過交叉沙坑。\n• 進攻果嶺: 會所建築產生漩渦風。果嶺是碗狀 (Punchbowl)，中間有脊線，可利用護坡喂球。" },
+    { "hole": 14, "title": "遊樂場", "par": 3, "hcp": 18.0, "distance": 119, "depth": 32, "green_image": "https://i.ibb.co/FLSsM6sq/Hole-14-green.jpg", "fairway_image": "https://i.ibb.co/8nxD1PhR/Hole-14-fareway.jpg", "strategy": "• 地形特徵: 最短洞，像沙盒。\n詳細攻略:\n• 策略: 僅 119 碼但沙坑密布，風亂。\n• 技巧: 果嶺右緣有隱藏「踢球坡」，可將球彈向中心。失誤會落入深沙坑。" },
+    { "hole": 15, "title": "燕窩", "par": 4, "hcp": 12.0, "distance": 367, "depth": 49, "green_image": "https://i.ibb.co/6RzMvHxH/Hole-15-green.jpg", "fairway_image": "https://i.ibb.co/39bfm20g/Hole-15-fareway.jpg", "strategy": "• 地形特徵: 果嶺緊鄰海岸，通往大海。\n詳細攻略:\n• 發球: 視野最窄。必須打上右側，左側進攻角度極差且盲打。\n• 進攻果嶺: 側風強。打短是沙，打大是海。建議低飛球 (Punch Shot)。" },
+    { "hole": 16, "title": "簽名洞", "par": 4, "hcp": 14.0, "distance": 346, "depth": 36, "green_image": "https://i.ibb.co/LXLMJVBL/Hole-16-green.jpg", "fairway_image": "https://i.ibb.co/wNL6B1fW/Hole-16-fareway.jpg", "strategy": "• 地形特徵: 沿海灘延伸，無邊際果嶺。\n詳細攻略:\n• 發球: 順風長打者有機會一桿攻果嶺。逆風需兩次紮實擊球。\n• 進攻果嶺: 視覺驚人。瞄準中心安全側，勿挑戰海邊旗位。" },
+    { "hole": 17, "title": "占婆", "par": 3, "hcp": 15.0, "distance": 157, "depth": 41, "green_image": "https://i.ibb.co/jvcJtkx4/Hole-17-green.jpg", "fairway_image": "https://i.ibb.co/fYZx4FGp/Hole-17-fareway.jpg", "strategy": "• 地形特徵: 直面占婆島，強側風。\n詳細攻略:\n• 戰略: 157 碼。無風簡單，海風強勁。\n• 建議: 壓低彈道，利用地面反彈。旗靠海瞄中心；旗在沙丘側可激進。" },
+    { "hole": 18, "title": "蛇的終章", "par": 5, "hcp": 10.0, "distance": 577, "depth": 37, "green_image": "https://i.ibb.co/4ZgDc36p/Hole-18-green.jpg", "fairway_image": "https://i.ibb.co/ycCJGY28/Hole-18-fareway.jpg", "strategy": "• 地形特徵: 逆風回會所，球道蛇形，右側有水。\n詳細攻略:\n• 發球: 避開兩側沙丘和右水。\n• 第二桿: 逆風長距離，極難兩桿上。佈局避開沙坑。\n• 進攻果嶺: 攻向「獅子嘴」沙坑守護的果嶺。英雄式結尾。" },
+    { "hole": 19, "title": "賭徒紅利", "par": 3, "hcp": null, "distance": 94, "depth": 31, "green_image": "https://i.ibb.co/ymsXyTSN/Hole-19-green.jpg", "fairway_image": "https://i.ibb.co/BVyc4pFh/Hole-19-fareway.jpg", "strategy": "• 特徵: 會所旁短三桿洞，解決平局用。近乎島果嶺，充滿樂趣。" }
+    ];
+
+    let currentHoleIndex = 0;
+    let currentView = 'fairway'; // 'fairway', 'green', 'strategy'
+
+    // DOM Elements
+    const navScroller = document.getElementById('nav-scroller');
+    const elTitle = document.getElementById('hole-title');
+    const elPar = document.getElementById('hole-par');
+    const elHcp = document.getElementById('hole-hcp');
+    const elDist = document.getElementById('hole-dist');
+    const elDepth = document.getElementById('hole-depth');
+    const mainImg = document.getElementById('main-img');
+    const strategyText = document.getElementById('strategy-text');
+    const viewImage = document.getElementById('view-image');
+    const viewStrategy = document.getElementById('view-strategy');
+    
+    // Lightbox Elements
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const lightboxContainer = document.getElementById('lightbox-img-container');
+
+    // --- Initialization ---
+    function init() {
+        renderNav();
+        loadHole(0);
+    }
+
+    // Render Top Navigation Buttons
+    function renderNav() {
+        navScroller.innerHTML = '';
+        courseData.forEach((hole, index) => {
+            const btn = document.createElement('div');
+            btn.className = 'hole-btn';
+            btn.textContent = hole.hole;
+            btn.onclick = () => loadHole(index);
+            btn.id = `nav-btn-${index}`;
+            navScroller.appendChild(btn);
+        });
+    }
+
+    // Load Specific Hole Data
+    function loadHole(index) {
+        currentHoleIndex = index;
+        const data = courseData[index];
+
+        // Update UI Text
+        elTitle.textContent = `${data.hole}. ${data.title}`;
+        elPar.textContent = data.par;
+        elHcp.textContent = data.hcp ? data.hcp : '-';
+        elDist.textContent = `${data.distance}y`;
+        elDepth.textContent = `${data.depth}y`;
+        strategyText.textContent = data.strategy;
+
+        // Update Nav Active State
+        document.querySelectorAll('.hole-btn').forEach(b => b.classList.remove('active'));
+        const activeBtn = document.getElementById(`nav-btn-${index}`);
+        if(activeBtn) {
+            activeBtn.classList.add('active');
+            activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+        }
+
+        // Refresh Content based on current view
+        updateContent();
+    }
+
+    // Handle Tab Switching
+    function setView(view) {
+        currentView = view;
+        updateContent();
+    }
+
+    function updateContent() {
+        // Update Buttons Styling
+        document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(`btn-${currentView}`).classList.add('active');
+
+        const data = courseData[currentHoleIndex];
+
+        if (currentView === 'strategy') {
+            viewImage.classList.add('hidden');
+            viewStrategy.classList.remove('hidden');
+            viewStrategy.style.display = 'block';
+        } else {
+            viewStrategy.classList.add('hidden');
+            viewStrategy.style.display = 'none';
+            viewImage.classList.remove('hidden');
+            
+            // Set Image Source
+            const src = currentView === 'fairway' ? data.fairway_image : data.green_image;
+            mainImg.src = src;
+        }
+    }
+
+    // --- Lightbox & Zoom Logic ---
+    let state = {
+        scale: 1,
+        panning: false,
+        pointX: 0,
+        pointY: 0,
+        startX: 0,
+        startY: 0
+    };
+
+    function openLightbox() {
+        if (currentView === 'strategy') return; // Cannot zoom text
+        
+        lightbox.style.display = 'block';
+        // Set High Res Image (Using same for now, but could be higher res)
+        lightboxImg.src = mainImg.src;
+        
+        // Reset Zoom State
+        resetZoom();
+    }
+
+    function closeLightbox() {
+        lightbox.style.display = 'none';
+        resetZoom();
+    }
+
+    function resetZoom() {
+        state = { scale: 1, panning: false, pointX: 0, pointY: 0, startX: 0, startY: 0 };
+        updateTransform();
+    }
+
+    function updateTransform() {
+        lightboxImg.style.transform = `translate(${state.pointX}px, ${state.pointY}px) scale(${state.scale})`;
+    }
+
+    // Touch Event Handling for Zoom/Pan
+    let initialDistance = 0;
+    let initialScale = 1;
+
+    lightboxContainer.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 2) {
+            // Pinch Start
+            e.preventDefault(); // Prevent default browser zoom
+            initialDistance = getDistance(e.touches);
+            initialScale = state.scale;
+        } else if (e.touches.length === 1) {
+            // Pan Start
+            state.panning = true;
+            state.startX = e.touches[0].clientX - state.pointX;
+            state.startY = e.touches[0].clientY - state.pointY;
+        }
+    }, { passive: false });
+
+    lightboxContainer.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 2) {
+            // Pinch Move
+            e.preventDefault();
+            const currentDistance = getDistance(e.touches);
+            if (initialDistance > 0) {
+                const diff = currentDistance / initialDistance;
+                let newScale = initialScale * diff;
+                // Limit Zoom
+                newScale = Math.max(1, Math.min(newScale, 4));
+                state.scale = newScale;
+                updateTransform();
+            }
+        } else if (e.touches.length === 1 && state.scale > 1) {
+            // Pan Move (Only allow if zoomed in)
+            e.preventDefault(); 
+            if (state.panning) {
+                state.pointX = e.touches[0].clientX - state.startX;
+                state.pointY = e.touches[0].clientY - state.startY;
+                updateTransform();
+            }
+        }
+    }, { passive: false });
+
+    lightboxContainer.addEventListener('touchend', (e) => {
+        state.panning = false;
+        if (e.touches.length < 2) {
+            initialDistance = 0;
+        }
+        // Snap back if scaled less than 1 (safety)
+        if(state.scale < 1) {
+            state.scale = 1;
+            state.pointX = 0;
+            state.pointY = 0;
+            updateTransform();
+        }
+    });
+
+    function getDistance(touches) {
+        return Math.hypot(
+            touches[0].clientX - touches[1].clientX,
+            touches[0].clientY - touches[1].clientY
+        );
+    }
+
+    // Run
+    init();
+
+</script>
+</body>
+</html>
